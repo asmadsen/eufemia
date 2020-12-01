@@ -13,7 +13,7 @@ import {
   warn
 } from 'dnb-ui-lib/src/shared/component-helper'
 import {
-  copyWithEffect,
+  useCopyWithNotice,
   runIOSSelectionFix
 } from 'dnb-ui-lib/src/components/Number'
 
@@ -38,6 +38,8 @@ const Copy = ({ children, className, ...rest }) => {
     }
   }, [])
 
+  const { copy } = useCopyWithNotice()
+
   const onClickHandler = () => {
     if (!hasSelectedText()) {
       try {
@@ -50,7 +52,7 @@ const Copy = ({ children, className, ...rest }) => {
           selection.removeAllRanges()
           selection.addRange(range)
 
-          copyWithEffect(str) // use copyWithEffect only to use the nice effect / animation
+          copy(str) // use copyWithNotice only to use the nice effect / animation
         }
       } catch (e) {
         warn(e)

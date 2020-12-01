@@ -910,25 +910,6 @@ export function runIOSSelectionFix() {
   }
 }
 
-export async function copyWithEffect(string) {
-  let success = null
-
-  if (string) {
-    try {
-      const fx = createSelectionFX(string)
-      success = await copyToClipboard(string)
-      if (success === true) {
-        fx.run()
-      }
-    } catch (e) {
-      warn(e)
-      success = e
-    }
-  }
-
-  return success
-}
-
 export function createSelectionFX(string) {
   let height = 32
   let left = 0
@@ -983,11 +964,50 @@ export function createSelectionFX(string) {
       try {
         document.body.appendChild(elem)
 
+        const { animationDuration } = window.getComputedStyle(elem)
+        let timeout = parseFloat(animationDuration)
+        if (!animationDuration.includes('ms')) {
+          timeout *= 1000
+        }
+
         // remove that element again
-        setTimeout(this.remove, 800)
+        setTimeout(this.remove, timeout) // use the time defined in number-fx-scale-out
       } catch (e) {
         warn(e)
       }
     }
   })()
+}
+
+export async function copyWithEffect(string, label) {
+  let success = null
+
+  if (string) {
+    try {
+      const fx = createSelectionFX(label || string)
+      success = await copyToClipboard(string)
+      if (success === true) {
+        fx.run()
+      }
+    } catch (e) {
+      warn(e)
+      success = e
+    }
+  }
+
+  return success
+}
+
+export function useCopyWithNotice() {
+  const {
+    translation: {
+      Number: { clipboard_copy }
+    }
+  } = React.useContext(Context)
+
+  const copy = (string) => {
+    copyWithEffect(string, clipboard_copy)
+  }
+
+  return { copy }
 }
