@@ -7,10 +7,34 @@ trigger:
     - pull-request
 
 steps:
+  # find cached node_modules by the file 'yarn.lock'
+  - name: load-yarn-cache
+    image: sinlead/drone-cache:1.0.0
+    settings:
+      action: load
+      key: yarn.lock
+      mount: node_modules
+      prefix: yarn-modules-v1
+    volumes:
+      - name: cache
+        path: /cache
+
   - name: install dependencies
     image: tujoworker/docker-node-puppeteer
     commands:
       - CYPRESS_INSTALL_BINARY=0 yarn install
+
+  # save installed node_modules to cache
+  - name: save-yarn-cache
+    image: sinlead/drone-cache:1.0.0
+    settings:
+      action: save
+      key: yarn.lock
+      mount: node_modules
+      prefix: yarn-modules-v1
+    volumes:
+      - name: cache
+        path: /cache
 
   - name: dependencies audit
     image: tujoworker/docker-node-puppeteer
@@ -202,3 +226,9 @@ steps:
       username: DroneCI
     when:
       status: [success, failure]
+
+# the cache storage at your host
+volumes:
+  - name: cache
+    host:
+      path: /tmp/cache
